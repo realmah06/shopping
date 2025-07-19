@@ -55,34 +55,59 @@
         .remove-product:hover {
             color: #bb2d3b;
         }
-        #printArea {
+        #receiptPage {
             display: none;
+            background-color: white;
+            padding: 30px;
+            max-width: 800px;
+            margin: 20px auto;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
         }
-        @media print {
-            body * {
-                visibility: hidden;
-            }
-            #printArea, #printArea * {
-                visibility: visible;
-            }
-            #printArea {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                display: block;
-            }
-            .no-print {
-                display: none !important;
-            }
+        .receipt-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .receipt-footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #666;
+        }
+        .receipt-table {
+            width: 100%;
+            margin: 20px 0;
+        }
+        .receipt-table th {
+            border-bottom: 2px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        .receipt-table td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .receipt-totals {
+            margin-left: auto;
+            width: 300px;
+        }
+        .receipt-totals tr:last-child td {
+            font-weight: bold;
+            border-top: 2px solid #ddd;
+        }
+        .back-to-form {
+            margin-top: 20px;
+            text-align: center;
         }
     </style>
 </head>
 <body>
-    <div class="container py-5">
+    <div class="container py-5" id="invoiceFormPage">
         <div class="card">
             <div class="header">
-                <h2 class="mb-0"><i class="bi bi-receipt"></i> Sales Invoice Generator</h2>
+                <h2 class="mb-0"><i class="bi bi-receipt"></i> Sales Invoice Generaor</h2>
             </div>
             <div class="card-body">
                 <form id="invoiceForm">
@@ -189,102 +214,90 @@
                         </div>
                     </div>
 
-                    <div class="d-flex justify-content-between no-print">
+                    <div class="d-flex justify-content-between">
                         <button type="button" class="btn btn-outline-secondary" id="resetForm">
                             <i class="bi bi-x-circle"></i> Reset
                         </button>
                         <div>
-                            <button type="button" class="btn btn-outline-success me-2" id="previewInvoice">
-                                <i class="bi bi-eye"></i> Preview
-                            </button>
                             <button type="submit" class="btn btn-primary me-2">
                                 <i class="bi bi-save"></i> Save Invoice
                             </button>
-                            <button type="button" class="btn btn-success" id="printInvoice">
-                                <i class="bi bi-printer"></i> Print Invoice
+                            <button type="button" class="btn btn-success" id="showReceipt">
+                                <i class="bi bi-receipt"></i> View Receipt
                             </button>
                         </div>
                     </div>
                 </form>
             </div>
         </div>
+    </div>
 
-        <!-- Invoice Preview Modal -->
-        <div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Invoice Preview</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div id="printArea">
-                            <div class="text-center mb-4">
-                                <h2>Your Company Name</h2>
-                                <p class="mb-1">123 Business Street, City, Country</p>
-                                <p class="mb-1">Phone: (123) 456-7890 | Email: info@company.com</p>
-                                <p class="mb-1">Tax ID: 123456789</p>
-                            </div>
-                            <hr>
-                            <div class="d-flex justify-content-between mb-4">
-                                <div>
-                                    <h5>Invoice To:</h5>
-                                    <p id="printCustomerName" class="mb-1"></p>
-                                    <p id="printCustomerPhone" class="mb-1"></p>
-                                </div>
-                                <div class="text-end">
-                                    <h5>Invoice Details</h5>
-                                    <p class="mb-1">Date: <span id="printDate"></span></p>
-                                    <p class="mb-1">Sales Person: <span id="printSalesPerson"></span></p>
-                                    <p class="mb-1">Payment Method: <span id="printPaymentMethod"></span></p>
-                                </div>
-                            </div>
-                            <table class="table table-bordered">
-                                <thead>
-                                    <tr>
-                                        <th>#</th>
-                                        <th>Product</th>
-                                        <th>Qty</th>
-                                        <th>Unit Price</th>
-                                        <th>Discount</th>
-                                        <th>Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="printProducts">
-                                </tbody>
-                                <tfoot>
-                                    <tr>
-                                        <td colspan="5" class="text-end fw-bold">Subtotal</td>
-                                        <td id="printSubtotal"></td>
-                                    </tr>
-                                    <tr>
-                                        <td colspan="5" class="text-end fw-bold">Discount</td>
-                                        <td id="printTotalDiscount"></td>
-                                    </tr>
-                                    <tr>
-                                        <td colspan="5" class="text-end fw-bold">Tax (10%)</td>
-                                        <td id="printTax"></td>
-                                    </tr>
-                                    <tr>
-                                        <td colspan="5" class="text-end fw-bold">Grand Total</td>
-                                        <td id="printGrandTotal"></td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                            <div class="mt-4 pt-4 border-top text-center">
-                                <p>Thank you for your business!</p>
-                                <p class="text-muted">This is a computer generated invoice and does not require a signature.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer no-print">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary" id="printFromPreview">
-                            <i class="bi bi-printer"></i> Print Invoice
-                        </button>
-                    </div>
-                </div>
+    <!-- Receipt Page -->
+    <div id="receiptPage">
+        <div class="receipt-header">
+            <h2>A.A MUJAHEED GLOBAL ENTERPRISES</h2>
+            <p class="mb-1">No. C3 Al-ameen Plaza adjacent to Zenith Bank PZ Zaria</p>
+            <p class="mb-1">Phone: (+234) 8069594220 | Email: abdullahiabubakarmujahid9@gmail.com</p>
+            <p class="mb-1">Tax ID: 123456789</p>
+        </div>
+        
+        <div class="d-flex justify-content-between mb-4">
+            <div>
+                <h5>Invoice To:</h5>
+                <p id="receiptCustomerName" class="mb-1"></p>
+                <p id="receiptCustomerPhone" class="mb-1"></p>
             </div>
+            <div class="text-end">
+                <h5>Invoice Details</h5>
+                <p class="mb-1">Date: <span id="receiptDate"></span></p>
+                <p class="mb-1">Sales Person: <span id="receiptSalesPerson"></span></p>
+                <p class="mb-1">Payment Method: <span id="receiptPaymentMethod"></span></p>
+            </div>
+        </div>
+        
+        <table class="receipt-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Product</th>
+                    <th>Qty</th>
+                    <th>Unit Price</th>
+                    <th>Discount</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody id="receiptProducts">
+            </tbody>
+        </table>
+        
+        <table class="receipt-totals">
+            <tr>
+                <td>Subtotal:</td>
+                <td id="receiptSubtotal" class="text-end"></td>
+            </tr>
+            <tr>
+                <td>Discount:</td>
+                <td id="receiptTotalDiscount" class="text-end"></td>
+            </tr>
+            <tr>
+                <td>Tax (10%):</td>
+                <td id="receiptTax" class="text-end"></td>
+            </tr>
+            <tr>
+                <td>Grand Total:</td>
+                <td id="receiptGrandTotal" class="text-end"></td>
+            </tr>
+        </table>
+        
+        <div class="receipt-footer">
+            <p>Thank you for your business!</p>
+            <p class="text-muted">This is a computer generated invoice and does not require a signature.</p>
+        </div>
+        
+        <div class="back-to-form">
+            <button type="button" class="btn btn-outline-primary" id="backToForm">
+                <i class="bi bi-arrow-left"></i> Back to Invoice Form
+            </button>
         </div>
     </div>
 
@@ -393,8 +406,8 @@
             // Initialize event listeners for the first row
             addRowEventListeners(document.querySelector('.product-row'));
 
-            // Preview invoice
-            document.getElementById('previewInvoice').addEventListener('click', function() {
+            // Show receipt page
+            document.getElementById('showReceipt').addEventListener('click', function() {
                 // Validate form
                 const form = document.getElementById('invoiceForm');
                 if (!form.checkValidity()) {
@@ -402,16 +415,16 @@
                     return;
                 }
                 
-                // Set preview data
-                document.getElementById('printDate').textContent = document.getElementById('invoiceDate').value;
-                document.getElementById('printSalesPerson').textContent = document.getElementById('salesPerson').value;
-                document.getElementById('printCustomerName').textContent = document.getElementById('customerName').value;
-                document.getElementById('printCustomerPhone').textContent = document.getElementById('customerPhone').value || 'N/A';
-                document.getElementById('printPaymentMethod').textContent = document.getElementById('paymentMethod').value;
+                // Set receipt data
+                document.getElementById('receiptDate').textContent = document.getElementById('invoiceDate').value;
+                document.getElementById('receiptSalesPerson').textContent = document.getElementById('salesPerson').value;
+                document.getElementById('receiptCustomerName').textContent = document.getElementById('customerName').value;
+                document.getElementById('receiptCustomerPhone').textContent = document.getElementById('customerPhone').value || 'N/A';
+                document.getElementById('receiptPaymentMethod').textContent = document.getElementById('paymentMethod').value;
                 
                 // Set products
-                const printProducts = document.getElementById('printProducts');
-                printProducts.innerHTML = '';
+                const receiptProducts = document.getElementById('receiptProducts');
+                receiptProducts.innerHTML = '';
                 let counter = 1;
                 
                 document.querySelectorAll('.product-row').forEach(row => {
@@ -430,45 +443,25 @@
                         <td>$${discount}</td>
                         <td>$${total}</td>
                     `;
-                    printProducts.appendChild(tr);
+                    receiptProducts.appendChild(tr);
                     counter++;
                 });
                 
                 // Set totals
-                document.getElementById('printSubtotal').textContent = '$' + document.getElementById('subtotal').textContent.substring(1);
-                document.getElementById('printTotalDiscount').textContent = '$' + document.getElementById('totalDiscount').textContent.substring(1);
-                document.getElementById('printTax').textContent = '$' + document.getElementById('tax').textContent.substring(1);
-                document.getElementById('printGrandTotal').textContent = '$' + document.getElementById('grandTotal').textContent.substring(1);
+                document.getElementById('receiptSubtotal').textContent = '$' + document.getElementById('subtotal').textContent.substring(1);
+                document.getElementById('receiptTotalDiscount').textContent = '$' + document.getElementById('totalDiscount').textContent.substring(1);
+                document.getElementById('receiptTax').textContent = '$' + document.getElementById('tax').textContent.substring(1);
+                document.getElementById('receiptGrandTotal').textContent = '$' + document.getElementById('grandTotal').textContent.substring(1);
                 
-                // Show modal
-                const previewModal = new bootstrap.Modal(document.getElementById('previewModal'));
-                previewModal.show();
+                // Show receipt page
+                document.getElementById('invoiceFormPage').style.display = 'none';
+                document.getElementById('receiptPage').style.display = 'block';
             });
 
-            // Print invoice from preview
-            document.getElementById('printFromPreview').addEventListener('click', function() {
-                window.print();
-            });
-
-            // Print invoice directly
-            document.getElementById('printInvoice').addEventListener('click', function() {
-                // Validate form
-                const form = document.getElementById('invoiceForm');
-                if (!form.checkValidity()) {
-                    form.reportValidity();
-                    return;
-                }
-                
-                // Trigger preview first to populate print area
-                document.getElementById('previewInvoice').click();
-                
-                // Wait for modal to be shown, then print
-                const previewModal = document.getElementById('previewModal');
-                previewModal.addEventListener('shown.bs.modal', function() {
-                    window.print();
-                    const modalInstance = bootstrap.Modal.getInstance(previewModal);
-                    modalInstance.hide();
-                }, { once: true });
+            // Back to form
+            document.getElementById('backToForm').addEventListener('click', function() {
+                document.getElementById('receiptPage').style.display = 'none';
+                document.getElementById('invoiceFormPage').style.display = 'block';
             });
 
             // Reset form
@@ -515,4 +508,4 @@
         });
     </script>
 </body>
-  </html>
+                                                                                                   </html>
