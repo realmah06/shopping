@@ -1,1 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Invoice Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4cc9f0;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: none;
+        }
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 10px 10px 0 0;
+            padding: 20px;
+        }
+        .invoice-preview {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        .product-row {
+            transition: all 0.3s ease;
+        }
+        .product-row:hover {
+            background-color: #f8f9fa;
+        }
+        .remove-product {
+            color: #dc3545;
+            cursor: pointer;
+        }
+        .remove-product:hover {
+            color: #bb2d3b;
+        }
+        #printArea {
+            display: none;
+        }
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #printArea, #printArea * {
+                visibility: visible;
+            }
+            #printArea {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                display: block;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <div class="card">
+            <div class="header">
+                <h2 class="mb-0"><i class="bi bi-receipt"></i> Sales Invoice Generator</h2>
+            </div>
+            <div class="card-body">
+                <form id="invoiceForm">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="invoiceDate" class="form-label">Date</label>
+                                <input type="date" class="form-control" id="invoiceDate" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="salesPerson" class="form-label">Sales Person</label>
+                                <select class="form-select" id="salesPerson" required>
+                                    <option value="" selected disabled>Select Sales Person</option>
+                                    <option value="John Doe">John Doe</option>
+                                    <option value="Jane Smith">Jane Smith</option>
+                                    <option value="Michael Johnson">Michael Johnson</option>
+                                    <option value="Sarah Williams">Sarah Williams</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="customerName" class="form-label">Customer Name</label>
+                                <input type="text" class="form-control" id="customerName" placeholder="Enter customer name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="customerPhone" class="form-label">Customer Phone</label>
+                                <input type="tel" class="form-control" id="customerPhone" placeholder="Enter phone number">
+                            </div>
+                        </div>
+                    </div>
 
+                    <div class="table-responsive mb-4">
+                        <table class="table" id="productsTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th width="30%">Product</th>
+                                    <th width="15%">Quantity</th>
+                                    <th width="15%">Unit Price</th>
+                                    <th width="15%">Discount</th>
+                                    <th width="15%">Total</th>
+                                    <th width="10%"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="productRows">
+                                <tr class="product-row">
+                                    <td>
+                                        <select class="form-select product-select" required>
+                                            <option value="" selected disabled>Select Product</option>
+                                            <option value="Product A">Product A</option>
+                                            <option value="Product B">Product B</option>
+                                            <option value="Product C">Product C</option>
+                                            <option value="Product D">Product D</option>
+                                        </select>
+                                    </td>
+                                    <td><input type="number" class="form-control quantity" min="1" value="1" required></td>
+                                    <td><input type="number" class="form-control unit-price" min="0" step="0.01" required></td>
+                                    <td><input type="number" class="form-control discount" min="0" step="0.01" value="0"></td>
+                                    <td><input type="text" class="form-control total" readonly></td>
+                                    <td><i class="bi bi-trash remove-product"></i></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <button type="button" class="btn btn-outline-primary" id="addProduct">
+                            <i class="bi bi-plus-circle"></i> Add Product
+                        </button>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="paymentMethod" class="form-label">Payment Method</label>
+                                <select class="form-select" id="paymentMethod" required>
+                                    <option value="" selected disabled>Select Payment Method</option>
+                                    <option value="Cash">Cash</option>
+                                    <option value="Credit Card">Credit Card</option>
+                                    <option value="Bank Transfer">Bank Transfer</option>
+                                    <option value="Mobile Payment">Mobile Payment</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span class="fw-bold">Subtotal:</span>
+                                        <span id="subtotal">$0.00</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span class="fw-bold">Total Discount:</span>
+                                        <span id="totalDiscount">$0.00</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span class="fw-bold">Tax (10%):</span>
+                                        <span id="tax">$0.00</span>
+                                    </div>
+                                    <hr>
+                                    <div class="d-flex justify-content-between">
+                                        <span class="fw-bold fs-5">Grand Total:</span>
+                                        <span class="fw-bold fs-5" id="grandTotal">$0.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between no-print">
+                        <button type="button" class="btn btn-outline-secondary" id="resetForm">
+                            <i class="bi bi-x-circle"></i> Reset
+                        </button>
+                        <div>
+                            <button type="button" class="btn btn-outline-success me-2" id="previewInvoice">
+                                <i class="bi bi-eye"></i> Preview
+                            </button>
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="bi bi-save"></i> Save Invoice
+                            </button>
+                            <button type="button" class="btn btn-success" id="printInvoice">
+                                <i class="bi bi-printer"></i> Print Invoice
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Invoice Preview Modal -->
+        <div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Invoice Preview</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="printArea">
+                            <div class="text-center mb-4">
+                                <h2>Your Company Name</h2>
+                                <p class="mb-1">123 Business Street, City, Country</p>
+                                <p class="mb-1">Phone: (123) 456-7890 | Email: info@company.com</p>
+                                <p class="mb-1">Tax ID: 123456789</p>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between mb-4">
+                                <div>
+                                    <h5>Invoice To:</h5>
+                                    <p id="printCustomerName" class="mb-1"></p>
+                                    <p id="printCustomerPhone" class="mb-1"></p>
+                                </div>
+                                <div class="text-end">
+                                    <h5>Invoice Details</h5>
+                                    <p class="mb-1">Date: <span id="printDate"></span></p>
+                                    <p class="mb-1">Sales Person: <span id="printSalesPerson"></span></p>
+                                    <p class="mb-1">Payment Method: <span id="printPaymentMethod"></span></p>
+                                </div>
+                            </div>
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Product</th>
+                                        <th>Qty</th>
+                                        <th>Unit Price</th>
+                                        <th>Discount</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="printProducts">
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="5" class="text-end fw-bold">Subtotal</td>
+                                        <td id="printSubtotal"></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="5" class="text-end fw-bold">Discount</td>
+                                        <td id="printTotalDiscount"></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="5" class="text-end fw-bold">Tax (10%)</td>
+                                        <td id="printTax"></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="5" class="text-end fw-bold">Grand Total</td>
+                                        <td id="printGrandTotal"></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                            <div class="mt-4 pt-4 border-top text-center">
+                                <p>Thank you for your business!</p>
+                                <p class="text-muted">This is a computer generated invoice and does not require a signature.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer no-print">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" id="printFromPreview">
+                            <i class="bi bi-printer"></i> Print Invoice
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set today's date as default
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('invoiceDate').value = today;
+
+            // Add product row
+            document.getElementById('addProduct').addEventListener('click', function() {
+                const newRow = document.createElement('tr');
+                newRow.className = 'product-row';
+                newRow.innerHTML = `
+                    <td>
+                        <select class="form-select product-select" required>
+                            <option value="" selected disabled>Select Product</option>
+                            <option value="Product A">Product A</option>
+                            <option value="Product B">Product B</option>
+                            <option value="Product C">Product C</option>
+                            <option value="Product D">Product D</option>
+                        </select>
+                    </td>
+                    <td><input type="number" class="form-control quantity" min="1" value="1" required></td>
+                    <td><input type="number" class="form-control unit-price" min="0" step="0.01" required></td>
+                    <td><input type="number" class="form-control discount" min="0" step="0.01" value="0"></td>
+                    <td><input type="text" class="form-control total" readonly></td>
+                    <td><i class="bi bi-trash remove-product"></i></td>
+                `;
+                document.getElementById('productRows').appendChild(newRow);
+                
+                // Add event listeners to new row
+                addRowEventListeners(newRow);
+            });
+
+            // Remove product row
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('remove-product')) {
+                    const row = e.target.closest('tr');
+                    if (document.querySelectorAll('.product-row').length > 1) {
+                        row.remove();
+                        calculateTotals();
+                    } else {
+                        alert('You need at least one product in the invoice.');
+                    }
+                }
+            });
+
+            // Calculate totals when quantity, price or discount changes
+            document.addEventListener('input', function(e) {
+                if (e.target.classList.contains('quantity') || 
+                    e.target.classList.contains('unit-price') || 
+                    e.target.classList.contains('discount')) {
+                    calculateRowTotal(e.target.closest('tr'));
+                    calculateTotals();
+                }
+            });
+
+            // Calculate row total
+            function calculateRowTotal(row) {
+                const quantity = parseFloat(row.querySelector('.quantity').value) || 0;
+                const unitPrice = parseFloat(row.querySelector('.unit-price').value) || 0;
+                const discount = parseFloat(row.querySelector('.discount').value) || 0;
+                const total = (quantity * unitPrice) - discount;
+                row.querySelector('.total').value = total.toFixed(2);
+            }
+
+            // Calculate all totals
+            function calculateTotals() {
+                let subtotal = 0;
+                let totalDiscount = 0;
+                
+                document.querySelectorAll('.product-row').forEach(row => {
+                    const total = parseFloat(row.querySelector('.total').value) || 0;
+                    const discount = parseFloat(row.querySelector('.discount').value) || 0;
+                    subtotal += total + discount; // Add back discount to get original amount
+                    totalDiscount += discount;
+                });
+                
+                const tax = subtotal * 0.1; // 10% tax
+                const grandTotal = subtotal + tax;
+                
+                document.getElementById('subtotal').textContent = '$' + subtotal.toFixed(2);
+                document.getElementById('totalDiscount').textContent = '$' + totalDiscount.toFixed(2);
+                document.getElementById('tax').textContent = '$' + tax.toFixed(2);
+                document.getElementById('grandTotal').textContent = '$' + grandTotal.toFixed(2);
+            }
+
+            // Add event listeners to a row
+            function addRowEventListeners(row) {
+                row.querySelector('.quantity').addEventListener('input', function() {
+                    calculateRowTotal(row);
+                    calculateTotals();
+                });
+                row.querySelector('.unit-price').addEventListener('input', function() {
+                    calculateRowTotal(row);
+                    calculateTotals();
+                });
+                row.querySelector('.discount').addEventListener('input', function() {
+                    calculateRowTotal(row);
+                    calculateTotals();
+                });
+            }
+
+            // Initialize event listeners for the first row
+            addRowEventListeners(document.querySelector('.product-row'));
+
+            // Preview invoice
+            document.getElementById('previewInvoice').addEventListener('click', function() {
+                // Validate form
+                const form = document.getElementById('invoiceForm');
+                if (!form.checkValidity()) {
+                    form.reportValidity();
+                    return;
+                }
+                
+                // Set preview data
+                document.getElementById('printDate').textContent = document.getElementById('invoiceDate').value;
+                document.getElementById('printSalesPerson').textContent = document.getElementById('salesPerson').value;
+                document.getElementById('printCustomerName').textContent = document.getElementById('customerName').value;
+                document.getElementById('printCustomerPhone').textContent = document.getElementById('customerPhone').value || 'N/A';
+                document.getElementById('printPaymentMethod').textContent = document.getElementById('paymentMethod').value;
+                
+                // Set products
+                const printProducts = document.getElementById('printProducts');
+                printProducts.innerHTML = '';
+                let counter = 1;
+                
+                document.querySelectorAll('.product-row').forEach(row => {
+                    const product = row.querySelector('.product-select').value;
+                    const quantity = row.querySelector('.quantity').value;
+                    const unitPrice = parseFloat(row.querySelector('.unit-price').value).toFixed(2);
+                    const discount = parseFloat(row.querySelector('.discount').value).toFixed(2);
+                    const total = row.querySelector('.total').value;
+                    
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${counter}</td>
+                        <td>${product}</td>
+                        <td>${quantity}</td>
+                        <td>$${unitPrice}</td>
+                        <td>$${discount}</td>
+                        <td>$${total}</td>
+                    `;
+                    printProducts.appendChild(tr);
+                    counter++;
+                });
+                
+                // Set totals
+                document.getElementById('printSubtotal').textContent = '$' + document.getElementById('subtotal').textContent.substring(1);
+                document.getElementById('printTotalDiscount').textContent = '$' + document.getElementById('totalDiscount').textContent.substring(1);
+                document.getElementById('printTax').textContent = '$' + document.getElementById('tax').textContent.substring(1);
+                document.getElementById('printGrandTotal').textContent = '$' + document.getElementById('grandTotal').textContent.substring(1);
+                
+                // Show modal
+                const previewModal = new bootstrap.Modal(document.getElementById('previewModal'));
+                previewModal.show();
+            });
+
+            // Print invoice from preview
+            document.getElementById('printFromPreview').addEventListener('click', function() {
+                window.print();
+            });
+
+            // Print invoice directly
+            document.getElementById('printInvoice').addEventListener('click', function() {
+                // Validate form
+                const form = document.getElementById('invoiceForm');
+                if (!form.checkValidity()) {
+                    form.reportValidity();
+                    return;
+                }
+                
+                // Trigger preview first to populate print area
+                document.getElementById('previewInvoice').click();
+                
+                // Wait for modal to be shown, then print
+                const previewModal = document.getElementById('previewModal');
+                previewModal.addEventListener('shown.bs.modal', function() {
+                    window.print();
+                    const modalInstance = bootstrap.Modal.getInstance(previewModal);
+                    modalInstance.hide();
+                }, { once: true });
+            });
+
+            // Reset form
+            document.getElementById('resetForm').addEventListener('click', function() {
+                if (confirm('Are you sure you want to reset the form? All data will be lost.')) {
+                    document.getElementById('invoiceForm').reset();
+                    document.getElementById('invoiceDate').value = today;
+                    
+                    // Reset product rows to just one
+                    const productRows = document.getElementById('productRows');
+                    while (productRows.children.length > 1) {
+                        productRows.removeChild(productRows.lastChild);
+                    }
+                    
+                    // Reset the first row
+                    const firstRow = productRows.firstElementChild;
+                    firstRow.querySelector('.product-select').value = '';
+                    firstRow.querySelector('.quantity').value = '1';
+                    firstRow.querySelector('.unit-price').value = '';
+                    firstRow.querySelector('.discount').value = '0';
+                    firstRow.querySelector('.total').value = '';
+                    
+                    // Reset totals
+                    document.getElementById('subtotal').textContent = '$0.00';
+                    document.getElementById('totalDiscount').textContent = '$0.00';
+                    document.getElementById('tax').textContent = '$0.00';
+                    document.getElementById('grandTotal').textContent = '$0.00';
+                }
+            });
+
+            // Form submission
+            document.getElementById('invoiceForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Here you would typically send the data to a server
+                // For this example, we'll just show an alert
+                alert('Invoice saved successfully!');
+                
+                // In a real application, you would:
+                // 1. Collect all form data
+                // 2. Send it to your backend via AJAX
+                // 3. Handle the response
+            });
+        });
+    </script>
+</body>
+  </html>
